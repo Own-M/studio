@@ -1,10 +1,12 @@
 "use client";
 
 import type { Lead } from "@/lib/types";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
-import { Phone, MessageCircle, CheckCircle } from "lucide-react";
+import { Phone, MessageCircle, CheckCircle, Sparkles } from "lucide-react";
 import { useAppContext } from "@/context/app-context";
+import { ScriptGeneratorDialog } from "./script-generator-dialog";
+import { useState } from "react";
 
 interface KanbanCardProps {
   lead: Lead;
@@ -12,6 +14,7 @@ interface KanbanCardProps {
 
 export default function KanbanCard({ lead }: KanbanCardProps) {
   const { updateLeadStatus } = useAppContext();
+  const [isScriptDialogOpen, setIsScriptDialogOpen] = useState(false);
 
   const handleContact = () => {
     updateLeadStatus(lead.id, "Contacted");
@@ -22,10 +25,19 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
   };
 
   return (
+    <>
     <Card className="bg-background/80 shadow-md hover:shadow-lg transition-shadow">
       <CardHeader>
-        <CardTitle className="text-base">{lead.name}</CardTitle>
-        <CardDescription>{lead.phone}</CardDescription>
+        <div className="flex justify-between items-start">
+            <div>
+                <CardTitle className="text-base">{lead.name}</CardTitle>
+                <CardDescription>{lead.phone}</CardDescription>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsScriptDialogOpen(true)}>
+                <Sparkles className="h-5 w-5 text-primary" />
+                <span className="sr-only">Generate Script</span>
+            </Button>
+        </div>
       </CardHeader>
       <CardFooter className="flex justify-end gap-2">
         {lead.status === 'To Do' && (
@@ -49,5 +61,11 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
         )}
       </CardFooter>
     </Card>
+    <ScriptGeneratorDialog 
+        isOpen={isScriptDialogOpen} 
+        onOpenChange={setIsScriptDialogOpen}
+        lead={lead}
+    />
+    </>
   );
 }
