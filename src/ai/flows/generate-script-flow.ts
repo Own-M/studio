@@ -10,13 +10,13 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateScriptInputSchema = z.object({
+const GenerateScriptInputSchema = z.object({
   name: z.string().describe('The name of the potential customer.'),
   phone: z.string().describe('The phone number of the potential customer.'),
 });
 export type GenerateScriptInput = z.infer<typeof GenerateScriptInputSchema>;
 
-export const GenerateScriptOutputSchema = z.object({
+const GenerateScriptOutputSchema = z.object({
     script: z.string().describe('The generated sales script.'),
 });
 export type GenerateScriptOutput = z.infer<typeof GenerateScriptOutputSchema>;
