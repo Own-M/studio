@@ -9,6 +9,7 @@ import { ScriptGeneratorDialog } from "./script-generator-dialog";
 import { LeadDetailsSheet } from "./lead-details-sheet";
 import { useState, useEffect } from "react";
 import { Badge } from "../ui/badge";
+import { CallUpdateDialog } from "./call-update-dialog";
 
 interface KanbanCardProps {
   lead: Lead;
@@ -18,6 +19,7 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
   const { updateLeadStatus, updateLeadScore } = useAppContext();
   const [isScriptDialogOpen, setIsScriptDialogOpen] = useState(false);
   const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
+  const [isCallUpdateOpen, setIsCallUpdateOpen] = useState(false);
 
   useEffect(() => {
     if (lead.score === null) {
@@ -27,7 +29,8 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
   }, [lead.id, lead.score]);
 
   const handleContact = () => {
-    updateLeadStatus(lead.id, "Contacted");
+    // Instead of directly updating status, open the update dialog
+    setIsCallUpdateOpen(true);
   };
   
   const handleConvert = () => {
@@ -54,7 +57,7 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
 
   return (
     <>
-    <Card className="bg-card shadow-sm hover:shadow-xl transition-shadow duration-300 ease-in-out">
+    <Card className="bg-card shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out rounded-lg">
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
@@ -89,13 +92,13 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
         <div className="flex justify-end gap-2">
             {lead.status === 'To Do' && (
                 <>
-                    <Button variant="outline" size="sm" asChild onClick={handleContact}>
-                        <a href={`tel:${lead.phone}`} aria-label={`Call ${lead.name}`}>
+                    <Button variant="outline" size="sm" asChild>
+                        <a href={`tel:${lead.phone}`} aria-label={`Call ${lead.name}`} onClick={handleContact}>
                             <Phone className="mr-2 h-4 w-4"/> Call
                         </a>
                     </Button>
-                    <Button variant="outline" size="sm" asChild onClick={handleContact}>
-                        <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${lead.name}`}>
+                    <Button variant="outline" size="sm" asChild >
+                         <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${lead.name}`} onClick={handleContact}>
                             <MessageCircle className="mr-2 h-4 w-4"/> WhatsApp
                         </a>
                     </Button>
@@ -117,6 +120,11 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
     <LeadDetailsSheet
         isOpen={isDetailsSheetOpen}
         onOpenChange={setIsDetailsSheetOpen}
+        leadId={lead.id}
+    />
+    <CallUpdateDialog
+        isOpen={isCallUpdateOpen}
+        onOpenChange={setIsCallUpdateOpen}
         leadId={lead.id}
     />
     </>

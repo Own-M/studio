@@ -5,12 +5,15 @@ import { useAppContext } from "@/context/app-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { User, UserPlus } from "lucide-react";
+import { UserPlus, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { AddAdvisorDialog } from "./add-advisor-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import type { Advisor } from "@/lib/types";
+
 
 export default function AdvisorList() {
-    const { advisors } = useAppContext();
+    const { advisors, deleteAdvisor } = useAppContext();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     return (
@@ -32,6 +35,7 @@ export default function AdvisorList() {
                         <TableRow>
                             <TableHead>Advisor</TableHead>
                             <TableHead>Email</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -48,6 +52,30 @@ export default function AdvisorList() {
                                     </div>
                                 </TableCell>
                                 <TableCell>{advisor.email}</TableCell>
+                                <TableCell className="text-right">
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the advisor
+                                                    and unassign all their leads.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => deleteAdvisor(advisor.id)} className="bg-destructive hover:bg-destructive/90">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

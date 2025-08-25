@@ -1,7 +1,7 @@
 "use client";
 
 import type { Lead } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { CardContent, CardHeader, CardTitle } from "../ui/card";
 import KanbanCard from "./kanban-card";
 import { Badge } from "../ui/badge";
 
@@ -23,8 +23,8 @@ export default function KanbanColumn({ title, leads, count }: KanbanColumnProps)
   }
 
   return (
-    <div className="flex flex-col h-full bg-secondary/50 rounded-lg">
-      <CardHeader className={`flex-shrink-0 border-t-4 ${getBorderColor(title)} rounded-t-lg bg-card`}>
+    <div className="flex flex-col h-full bg-secondary/50 rounded-lg shadow-sm">
+      <CardHeader className={`flex-shrink-0 border-t-4 ${getBorderColor(title)} rounded-t-lg bg-card sticky top-0 z-10`}>
         <CardTitle className="flex items-center justify-between text-lg font-bold">
             <span>{title}</span>
             <Badge variant="secondary" className="text-base">{count}</Badge>

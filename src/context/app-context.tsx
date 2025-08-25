@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { Advisor, Lead, LeadStatus, Note, HistoryItem, LeadScore } from "@/lib/types";
+import type { Advisor, Lead, LeadStatus, Note, HistoryItem, LeadScore, CallOutcome } from "@/lib/types";
 import { mockAdvisors, mockLeads, mockUnassignedLeads } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { scoreLead } from "@/ai/flows/score-lead-flow";
@@ -10,11 +10,13 @@ interface AppContextType {
   advisors: Advisor[];
   leads: Lead[];
   assignLead: (leadId: string, advisorId: string) => void;
-  updateLeadStatus: (leadId: string, status: LeadStatus) => void;
+  updateLeadStatus: (leadId: string, status: LeadStatus, outcome?: CallOutcome) => void;
   importLeads: (csvData: string) => void;
   addNoteToLead: (leadId: string, noteText: string) => void;
   addAdvisor: (name: string, email: string, password?: string) => void;
+  deleteAdvisor: (advisorId: string) => void;
   getLeadById: (leadId: string) => Lead | undefined;
+  getAdvisorById: (advisorId: string) => Advisor | undefined;
   updateLeadScore: (leadId: string) => Promise<void>;
   loginAdvisor: (email: string, password?: string) => Advisor | undefined;
 }
@@ -28,6 +30,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const getLeadById = (leadId: string) => {
     return leads.find(lead => lead.id === leadId);
+  }
+
+  const getAdvisorById = (advisorId: string) => {
+      return advisors.find(a => a.id === advisorId);
   }
 
   const addHistoryItem = (leadId: string, item: Omit<HistoryItem, 'id' | 'date'>): Lead => {
@@ -72,7 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateLeadStatus = (leadId: string, status: LeadStatus) => {
+  const updateLeadStatus = (leadId: string, status: LeadStatus, outcome?: CallOutcome) => {
     const lead = getLeadById(leadId);
     if (!lead || lead.status === status) return;
 
@@ -82,8 +88,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       prevLeads.map((l) => {
         if (l.id === leadId) {
             const updatedLead = { ...l, status };
-            if (status === 'Contacted' && !l.lastContacted) {
+            if (status === 'Contacted') {
                 updatedLead.lastContacted = new Date().toISOString();
+                if (outcome) {
+                  updatedLead.lastCallOutcome = outcome;
+                }
             }
             return updatedLead;
         }
@@ -91,24 +100,77 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
     );
     
+    let historyText = `Status changed from ${oldStatus} to ${status}.`;
+    if(status === 'Contacted' && outcome) {
+        historyText += ` Call Outcome: ${outcome}.`;
+    }
+
     addHistoryItem(leadId, {
         type: 'STATUS_CHANGE',
-        text: `Status changed from ${oldStatus} to ${status}.`,
+        text: historyText,
         oldValue: oldStatus,
         newValue: status,
     });
   };
   
   const importLeads = (csvData: string) => {
-    // This is a mock implementation. In a real app, you'd parse the CSV.
-    // For now, we'll add the pre-defined mock unassigned leads.
-    console.log("CSV Data Received:", csvData.substring(0, 100)); // Log first 100 chars
-    const newLeads = mockUnassignedLeads.map(l => ({...l, id: `${l.id}-${Date.now()}`}));
-    setLeads(prev => [...prev, ...newLeads]);
-    toast({
-        title: "Import Successful",
-        description: `${newLeads.length} new leads have been imported.`
-    })
+    // In a real app, you'd parse the CSV properly.
+    const lines = csvData.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const nameIndex = headers.indexOf('name');
+    const phoneIndex = headers.indexOf('phone');
+
+    if (nameIndex === -1 || phoneIndex === -1) {
+        toast({
+            variant: "destructive",
+            title: "Import Failed",
+            description: "CSV must contain 'name' and 'phone' columns.",
+        });
+        return;
+    }
+
+    const newLeads: Lead[] = lines.slice(1).map((line, index) => {
+        const values = line.split(',');
+        const name = values[nameIndex]?.trim();
+        const phone = values[phoneIndex]?.trim();
+        
+        if (!name || !phone) return null;
+
+        const creationHistory: HistoryItem = {
+            id: `hist-import-${Date.now()}-${index}`,
+            type: 'CREATION',
+            text: `Lead "${name}" was created via CSV import.`,
+            date: new Date().toISOString(),
+        };
+
+        return {
+            id: `lead-import-${Date.now()}-${index}`,
+            name,
+            phone,
+            email: `${name.toLowerCase().replace(/\s/g, '.')}@example.com`,
+            status: "To Do",
+            advisorId: null,
+            notes: [],
+            history: [creationHistory],
+            score: null,
+            lastContacted: null,
+            lastCallOutcome: null,
+        };
+    }).filter((lead): lead is Lead => lead !== null);
+
+    if (newLeads.length > 0) {
+        setLeads(prev => [...prev, ...newLeads]);
+        toast({
+            title: "Import Successful",
+            description: `${newLeads.length} new leads have been imported.`
+        });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Import Failed",
+            description: "No valid leads found in the CSV file.",
+        });
+    }
   };
 
   const addNoteToLead = (leadId: string, noteText: string) => {
@@ -155,9 +217,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   };
 
+   const deleteAdvisor = (advisorId: string) => {
+    const advisorToDelete = advisors.find(a => a.id === advisorId);
+    if (!advisorToDelete) return;
+
+    setAdvisors(prev => prev.filter(advisor => advisor.id !== advisorId));
+    setLeads(prevLeads => prevLeads.map(lead => 
+        lead.advisorId === advisorId ? { ...lead, advisorId: null } : lead
+    ));
+
+    toast({
+        title: "Advisor Deleted",
+        description: `${advisorToDelete.name} has been removed from the team.`,
+        variant: "destructive",
+    });
+  };
+
   const updateLeadScore = async (leadId: string) => {
     const lead = getLeadById(leadId);
     if (!lead) return;
+
+    // Prevent re-scoring immediately
+    const lastHistory = lead.history[0];
+    if(lastHistory?.type === 'SCORE_UPDATE' && (new Date().getTime() - new Date(lastHistory.date).getTime() < 60000)) {
+        toast({ title: "Score Updated Recently", description: "Please wait a moment before re-scoring."});
+        return;
+    }
 
     try {
         const result = await scoreLead({ 
@@ -169,6 +254,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setLeads(prevLeads => prevLeads.map(l => 
             l.id === leadId ? { ...l, score: result.score as LeadScore } : l
         ));
+
+        addHistoryItem(leadId, {
+            type: 'SCORE_UPDATE',
+            text: `AI score updated to ${result.score}. Reason: ${result.reason}`,
+        });
 
         toast({
             title: "Lead Score Updated",
@@ -194,7 +284,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   return (
-    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead, addAdvisor, getLeadById, updateLeadScore, loginAdvisor }}>
+    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead, addAdvisor, deleteAdvisor, getLeadById, getAdvisorById, updateLeadScore, loginAdvisor }}>
       {children}
     </AppContext.Provider>
   );

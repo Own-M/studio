@@ -14,9 +14,9 @@ const generateCreationHistory = (name: string): HistoryItem => ({
 });
 
 export const mockUnassignedLeads: Lead[] = [
-    { id: "lead5", name: "Abdullah Al Mamun", phone: "01600000005", email: "abdullah@example.com", status: "To Do", advisorId: null, notes: [], history: [generateCreationHistory("Abdullah Al Mamun")], score: null, lastContacted: null },
-    { id: "lead6", name: "Ishrat Jahan", phone: "01300000006", email: "ishrat@example.com", status: "To Do", advisorId: null, notes: [], history: [generateCreationHistory("Ishrat Jahan")], score: 'Warm', lastContacted: null },
-    { id: "lead7", name: "Raihan Uddin", phone: "01400000007", email: "raihan@example.com", status: "To Do", advisorId: null, notes: [], history: [generateCreationHistory("Raihan Uddin")], score: null, lastContacted: null },
+    { id: "lead5", name: "Abdullah Al Mamun", phone: "01600000005", email: "abdullah@example.com", status: "To Do", advisorId: null, notes: [], history: [generateCreationHistory("Abdullah Al Mamun")], score: null, lastContacted: null, lastCallOutcome: null },
+    { id: "lead6", name: "Ishrat Jahan", phone: "01300000006", email: "ishrat@example.com", status: "To Do", advisorId: null, notes: [], history: [generateCreationHistory("Ishrat Jahan")], score: 'Warm', lastContacted: null, lastCallOutcome: null },
+    { id: "lead7", name: "Raihan Uddin", phone: "01400000007", email: "raihan@example.com", status: "To Do", advisorId: null, notes: [], history: [generateCreationHistory("Raihan Uddin")], score: null, lastContacted: null, lastCallOutcome: null },
 ];
 
 const lead1Notes: Note[] = [];
@@ -41,11 +41,11 @@ const lead4History: HistoryItem[] = [
 
 
 export const mockLeads: Lead[] = [
-  { id: "lead1", name: "Jahid Hasan", phone: "01700000001", email: "jahid@example.com", status: "To Do", advisorId: "adv1", notes: lead1Notes, history: lead1History, score: "Hot", lastContacted: null },
-  { id: "lead2", name: "Sumaiya Akter", phone: "01800000002", email: "sumaiya@example.com", status: "To Do", advisorId: "adv1", notes: lead2Notes, history: lead2History, score: "Warm", lastContacted: null },
-  { id: "lead3", name: "Karim Chowdhury", phone: "01900000003", email: "karim@example.com", status: "Contacted", advisorId: "adv2", notes: lead3Notes, history: lead3History, score: "Hot", lastContacted: new Date().toISOString() },
-  { id: "lead4", name: "Nasrin Sultana", phone: "01500000004", email: "nasrin@example.com", status: "Converted", advisorId: "adv2", notes: lead4Notes, history: lead4History, score: "Hot", lastContacted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "lead8", name: "Faria Islam", phone: "01711111111", email: "faria@example.com", status: "Contacted", advisorId: "adv1", notes: [], history: [generateCreationHistory("Faria Islam")], score: 'Cold', lastContacted: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "lead9", name: "Imran Hossain", phone: "01822222222", email: "imran@example.com", status: "To Do", advisorId: "adv3", notes: [], history: [generateCreationHistory("Imran Hossain")], score: 'Warm', lastContacted: null },
+  { id: "lead1", name: "Jahid Hasan", phone: "01700000001", email: "jahid@example.com", status: "To Do", advisorId: "adv1", notes: lead1Notes, history: lead1History, score: "Hot", lastContacted: null, lastCallOutcome: null },
+  { id: "lead2", name: "Sumaiya Akter", phone: "01800000002", email: "sumaiya@example.com", status: "To Do", advisorId: "adv1", notes: lead2Notes, history: lead2History, score: "Warm", lastContacted: null, lastCallOutcome: null },
+  { id: "lead3", name: "Karim Chowdhury", phone: "01900000003", email: "karim@example.com", status: "Contacted", advisorId: "adv2", notes: lead3Notes, history: lead3History, score: "Hot", lastContacted: new Date().toISOString(), lastCallOutcome: "Call Received" },
+  { id: "lead4", name: "Nasrin Sultana", phone: "01500000004", email: "nasrin@example.com", status: "Converted", advisorId: "adv2", notes: lead4Notes, history: lead4History, score: "Hot", lastContacted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), lastCallOutcome: "Call Received" },
+  { id: "lead8", name: "Faria Islam", phone: "01711111111", email: "faria@example.com", status: "Contacted", advisorId: "adv1", notes: [], history: [generateCreationHistory("Faria Islam")], score: 'Cold', lastContacted: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), lastCallOutcome: "Call Not Received" },
+  { id: "lead9", name: "Imran Hossain", phone: "01822222222", email: "imran@example.com", status: "To Do", advisorId: "adv3", notes: [], history: [generateCreationHistory("Imran Hossain")], score: 'Warm', lastContacted: null, lastCallOutcome: null },
   ...mockUnassignedLeads,
 ];

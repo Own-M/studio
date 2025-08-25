@@ -9,10 +9,11 @@ export interface Advisor {
 
 export type LeadStatus = "To Do" | "Contacted" | "Converted";
 export type LeadScore = "Hot" | "Warm" | "Cold" | null;
+export type CallOutcome = "Call Received" | "Call Not Received" | "Follow-up Required" | null;
 
 export interface HistoryItem {
     id: string;
-    type: 'STATUS_CHANGE' | 'NOTE' | 'ASSIGNMENT' | 'CREATION';
+    type: 'STATUS_CHANGE' | 'NOTE' | 'ASSIGNMENT' | 'CREATION' | 'SCORE_UPDATE';
     text: string;
     date: string;
     oldValue?: string;
@@ -36,4 +37,5 @@ export interface Lead {
   history: HistoryItem[];
   score: LeadScore;
   lastContacted: string | null;
+  lastCallOutcome: CallOutcome;
 }
