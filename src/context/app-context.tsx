@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { Advisor, Lead, LeadStatus } from "@/lib/types";
+import type { Advisor, Lead, LeadStatus, Note } from "@/lib/types";
 import { mockAdvisors, mockLeads, mockUnassignedLeads } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,6 +11,7 @@ interface AppContextType {
   assignLead: (leadId: string, advisorId: string) => void;
   updateLeadStatus: (leadId: string, status: LeadStatus) => void;
   importLeads: () => void;
+  addNoteToLead: (leadId: string, noteText: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -50,10 +51,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         title: "Import Successful",
         description: `${newLeads.length} new leads have been imported.`
     })
-  }
+  };
+
+  const addNoteToLead = (leadId: string, noteText: string) => {
+    setLeads(prevLeads => 
+        prevLeads.map(lead => {
+            if (lead.id === leadId) {
+                const newNote: Note = {
+                    id: `note-${Date.now()}`,
+                    text: noteText,
+                    date: new Date().toISOString()
+                };
+                return {
+                    ...lead,
+                    notes: [...lead.notes, newNote]
+                };
+            }
+            return lead;
+        })
+    );
+    toast({
+        title: "Note Added",
+        description: `A new note has been added for the lead.`
+    })
+  };
 
   return (
-    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads }}>
+    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead }}>
       {children}
     </AppContext.Provider>
   );
