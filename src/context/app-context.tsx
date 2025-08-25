@@ -11,11 +11,12 @@ interface AppContextType {
   leads: Lead[];
   assignLead: (leadId: string, advisorId: string) => void;
   updateLeadStatus: (leadId: string, status: LeadStatus) => void;
-  importLeads: () => void;
+  importLeads: (csvData: string) => void;
   addNoteToLead: (leadId: string, noteText: string) => void;
-  addAdvisor: (name: string, email: string) => void;
+  addAdvisor: (name: string, email: string, password?: string) => void;
   getLeadById: (leadId: string) => Lead | undefined;
   updateLeadScore: (leadId: string) => Promise<void>;
+  loginAdvisor: (email: string, password?: string) => Advisor | undefined;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -98,7 +99,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const importLeads = () => {
+  const importLeads = (csvData: string) => {
+    // This is a mock implementation. In a real app, you'd parse the CSV.
+    // For now, we'll add the pre-defined mock unassigned leads.
+    console.log("CSV Data Received:", csvData.substring(0, 100)); // Log first 100 chars
     const newLeads = mockUnassignedLeads.map(l => ({...l, id: `${l.id}-${Date.now()}`}));
     setLeads(prev => [...prev, ...newLeads]);
     toast({
@@ -137,11 +141,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   };
 
-  const addAdvisor = (name: string, email: string) => {
+  const addAdvisor = (name: string, email: string, password?: string) => {
     const newAdvisor: Advisor = {
         id: `adv-${Date.now()}`,
         name,
         email,
+        password,
     };
     setAdvisors(prev => [...prev, newAdvisor]);
     toast({
@@ -179,9 +184,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const loginAdvisor = (email: string, password?: string) => {
+      const advisor = advisors.find(a => a.email.toLowerCase() === email.toLowerCase());
+      if (advisor && advisor.password === password) {
+          return advisor;
+      }
+      return undefined;
+  }
+
 
   return (
-    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead, addAdvisor, getLeadById, updateLeadScore }}>
+    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead, addAdvisor, getLeadById, updateLeadScore, loginAdvisor }}>
       {children}
     </AppContext.Provider>
   );

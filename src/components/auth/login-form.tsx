@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,25 +24,28 @@ import {
 } from "@/components/ui/select";
 import { useAppContext } from "@/context/app-context";
 import type { Role } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
   role: z.enum(["team-leader", "advisor"], {
     required_error: "You need to select a role.",
   }),
-  advisorId: z.string().optional(),
+  email: z.string().email({ message: "Please enter a valid email." }).optional(),
+  password: z.string().optional(),
 }).refine(data => {
     if (data.role === 'advisor') {
-        return !!data.advisorId;
+        return !!data.email && !!data.password;
     }
     return true;
 }, {
-    message: "You need to select an advisor.",
-    path: ["advisorId"],
+    message: "Email and password are required for advisors.",
+    path: ["email"],
 });
 
 export function LoginForm() {
   const router = useRouter();
-  const { advisors } = useAppContext();
+  const { loginAdvisor } = useAppContext();
+  const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -52,15 +56,33 @@ export function LoginForm() {
 
   useEffect(() => {
     setSelectedRole(role);
-    form.setValue("advisorId", undefined);
+    form.setValue("email", undefined);
+    form.setValue("password", undefined);
   }, [role, form]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    localStorage.setItem("userRole", data.role);
-    if (data.role === "advisor" && data.advisorId) {
-      localStorage.setItem("userId", data.advisorId);
+    localStorage.removeItem("userId");
+    
+    if (data.role === 'team-leader') {
+      localStorage.setItem("userRole", data.role);
+      router.push("/dashboard");
+      return;
     }
-    router.push("/dashboard");
+
+    if (data.role === 'advisor' && data.email && data.password) {
+        const advisor = loginAdvisor(data.email, data.password);
+        if (advisor) {
+            localStorage.setItem("userRole", data.role);
+            localStorage.setItem("userId", advisor.id);
+            router.push("/dashboard");
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Login Failed",
+                description: "Invalid email or password.",
+            });
+        }
+    }
   }
 
   return (
@@ -89,28 +111,34 @@ export function LoginForm() {
         />
 
         {selectedRole === "advisor" && (
-            <FormField
-            control={form.control}
-            name="advisorId"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Advisor</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select your name" />
-                    </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                    {advisors.map(advisor => (
-                        <SelectItem key={advisor.id} value={advisor.id}>{advisor.name}</SelectItem>
-                    ))}
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+            <>
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input placeholder="your.email@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" placeholder="********" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </>
         )}
 
         <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Login</Button>

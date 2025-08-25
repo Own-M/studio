@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAppContext } from "@/context/app-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { FileUp, UserPlus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LeadAssignment() {
     const { leads, advisors, assignLead, importLeads } = useAppContext();
     const unassignedLeads = leads.filter(lead => lead.advisorId === null);
     const [selectedAdvisors, setSelectedAdvisors] = useState<Record<string, string>>({});
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
 
     const handleAssign = (leadId: string) => {
         const advisorId = selectedAdvisors[leadId];
@@ -25,6 +28,34 @@ export default function LeadAssignment() {
         }
     };
     
+    const handleImportClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target?.result;
+                if (typeof text === 'string') {
+                    // In a real app, you would parse the CSV here.
+                    // For now, we pass the raw text to a mock function.
+                    importLeads(text);
+                }
+            };
+            reader.readAsText(file);
+            toast({
+                title: "File Selected",
+                description: `${file.name} is being processed.`,
+            });
+        }
+         // Reset the file input so the same file can be re-uploaded
+        if(fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -32,10 +63,17 @@ export default function LeadAssignment() {
                     <CardTitle>Unassigned Leads</CardTitle>
                     <CardDescription>Import new leads and assign them to your advisors.</CardDescription>
                 </div>
-                <Button onClick={importLeads}>
+                <Button onClick={handleImportClick}>
                     <FileUp className="mr-2 h-4 w-4" />
                     Import from CSV
                 </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".csv"
+                    className="hidden"
+                />
             </CardHeader>
             <CardContent>
                 <Table>

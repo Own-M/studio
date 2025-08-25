@@ -4,6 +4,7 @@ export interface Advisor {
   id: string;
   name: string;
   email: string;
+  password?: string;
 }
 
 export type LeadStatus = "To Do" | "Contacted" | "Converted";

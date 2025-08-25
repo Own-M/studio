@@ -1,9 +1,9 @@
 import type { Advisor, Lead, HistoryItem, Note } from "@/lib/types";
 
 export const mockAdvisors: Advisor[] = [
-  { id: "adv1", name: "Anika Tasnim", email: "anika@example.com" },
-  { id: "adv2", name: "Rahim Ahmed", email: "rahim@example.com" },
-  { id: "adv3", name: "Fatima Khan", email: "fatima@example.com" },
+  { id: "adv1", name: "Anika Tasnim", email: "anika@example.com", password: "password123" },
+  { id: "adv2", name: "Rahim Ahmed", email: "rahim@example.com", password: "password123" },
+  { id: "adv3", name: "Fatima Khan", email: "fatima@example.com", password: "password123" },
 ];
 
 const generateCreationHistory = (name: string): HistoryItem => ({
