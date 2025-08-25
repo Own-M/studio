@@ -12,23 +12,33 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({ title, leads, count }: KanbanColumnProps) {
+  
+  const getBorderColor = (title: string) => {
+    switch (title) {
+        case 'To Do': return 'border-t-yellow-500';
+        case 'Contacted': return 'border-t-blue-500';
+        case 'Converted': return 'border-t-green-500';
+        default: return 'border-t-gray-300';
+    }
+  }
+
   return (
-    <Card className="flex flex-col h-full">
-      <CardHeader className="flex-shrink-0">
-        <CardTitle className="flex items-center justify-between">
+    <div className="flex flex-col h-full bg-secondary/50 rounded-lg">
+      <CardHeader className={`flex-shrink-0 border-t-4 ${getBorderColor(title)} rounded-t-lg bg-card`}>
+        <CardTitle className="flex items-center justify-between text-lg font-bold">
             <span>{title}</span>
-            <Badge variant="secondary">{count}</Badge>
+            <Badge variant="secondary" className="text-base">{count}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow space-y-4 overflow-y-auto">
+      <CardContent className="flex-grow space-y-4 overflow-y-auto p-4">
         {leads.length > 0 ? (
           leads.map((lead) => <KanbanCard key={lead.id} lead={lead} />)
         ) : (
-          <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center h-32 text-sm text-muted-foreground bg-card/50 rounded-md">
             No leads here.
           </div>
         )}
       </CardContent>
-    </Card>
+    </div>
   );
 }

@@ -88,6 +88,7 @@ export function LoginForm() {
                 title: "Login Failed",
                 description: "Invalid email or password.",
             });
+            form.setError("password", { type: "manual", message: "Invalid credentials" });
         }
     }
   }
@@ -148,7 +149,7 @@ export function LoginForm() {
             </>
         )}
 
-        <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Login</Button>
+        <Button type="submit" className="w-full text-lg py-6 font-semibold">Login</Button>
       </form>
     </Form>
   );

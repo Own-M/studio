@@ -3,7 +3,7 @@
 import type { Lead } from "@/lib/types";
 import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
-import { Phone, MessageCircle, CheckCircle, Sparkles, Notebook, Zap } from "lucide-react";
+import { Phone, MessageCircle, CheckCircle, Sparkles, Notebook, Zap, Flame, Thermometer, Snowflake } from "lucide-react";
 import { useAppContext } from "@/context/app-context";
 import { ScriptGeneratorDialog } from "./script-generator-dialog";
 import { LeadDetailsSheet } from "./lead-details-sheet";
@@ -43,23 +43,37 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
     }
   }
 
+  const getScoreIcon = (score: string | null) => {
+    switch (score) {
+        case 'Hot': return <Flame className="h-4 w-4" />;
+        case 'Warm': return <Thermometer className="h-4 w-4" />;
+        case 'Cold': return <Snowflake className="h-4 w-4" />;
+        default: return <Zap className="h-4 w-4 animate-pulse" />;
+    }
+  }
+
   return (
     <>
-    <Card className="bg-background/80 shadow-md hover:shadow-lg transition-shadow">
+    <Card className="bg-card shadow-sm hover:shadow-xl transition-shadow duration-300 ease-in-out">
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
-                <CardTitle className="text-base">{lead.name}</CardTitle>
-                <CardDescription>{lead.phone}</CardDescription>
+                <CardTitle className="text-base font-semibold">{lead.name}</CardTitle>
+                <CardDescription className="pt-1">{lead.phone}</CardDescription>
             </div>
-             <div className="flex items-center gap-1">
+             <div className="flex items-center gap-2">
                 {lead.score ? (
-                     <Badge variant={getScoreVariant(lead.score)}>{lead.score}</Badge>
+                     <Badge variant={getScoreVariant(lead.score)} className="gap-1.5 pr-2.5 pl-2">
+                        {getScoreIcon(lead.score)}
+                        {lead.score}
+                     </Badge>
                 ) : (
-                    <Zap className="h-4 w-4 text-muted-foreground animate-pulse" />
+                    <Badge variant="outline">
+                        <Zap className="h-4 w-4 text-muted-foreground animate-pulse" />
+                    </Badge>
                 )}
-                <Button variant="ghost" size="icon" onClick={() => setIsDetailsSheetOpen(true)}>
-                    <Notebook className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDetailsSheetOpen(true)}>
+                    <Notebook className="h-4 w-4" />
                     <span className="sr-only">View Details</span>
                 </Button>
             </div>
@@ -88,7 +102,7 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
                 </>
             )}
             {lead.status === 'Contacted' && (
-                <Button size="sm" onClick={handleConvert} className="bg-green-500 hover:bg-green-600 text-white">
+                <Button size="sm" onClick={handleConvert} className="bg-green-600 hover:bg-green-700 text-white">
                     <CheckCircle className="mr-2 h-4 w-4"/> Mark as Converted
                 </Button>
             )}
