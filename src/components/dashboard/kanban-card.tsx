@@ -3,20 +3,28 @@
 import type { Lead } from "@/lib/types";
 import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import { Button } from "../ui/button";
-import { Phone, MessageCircle, CheckCircle, Sparkles, Notebook } from "lucide-react";
+import { Phone, MessageCircle, CheckCircle, Sparkles, Notebook, Zap } from "lucide-react";
 import { useAppContext } from "@/context/app-context";
 import { ScriptGeneratorDialog } from "./script-generator-dialog";
 import { LeadDetailsSheet } from "./lead-details-sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Badge } from "../ui/badge";
 
 interface KanbanCardProps {
   lead: Lead;
 }
 
 export default function KanbanCard({ lead }: KanbanCardProps) {
-  const { updateLeadStatus } = useAppContext();
+  const { updateLeadStatus, updateLeadScore } = useAppContext();
   const [isScriptDialogOpen, setIsScriptDialogOpen] = useState(false);
   const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (lead.score === null) {
+      updateLeadScore(lead.id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead.id, lead.score]);
 
   const handleContact = () => {
     updateLeadStatus(lead.id, "Contacted");
@@ -25,6 +33,15 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
   const handleConvert = () => {
     updateLeadStatus(lead.id, "Converted");
   };
+
+  const getScoreVariant = (score: string | null) => {
+    switch (score) {
+      case 'Hot': return 'destructive';
+      case 'Warm': return 'default';
+      case 'Cold': return 'secondary';
+      default: return 'outline';
+    }
+  }
 
   return (
     <>
@@ -35,11 +52,12 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
                 <CardTitle className="text-base">{lead.name}</CardTitle>
                 <CardDescription>{lead.phone}</CardDescription>
             </div>
-            <div className="flex items-center">
-                <Button variant="ghost" size="icon" onClick={() => setIsScriptDialogOpen(true)}>
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <span className="sr-only">Generate Script</span>
-                </Button>
+             <div className="flex items-center gap-1">
+                {lead.score ? (
+                     <Badge variant={getScoreVariant(lead.score)}>{lead.score}</Badge>
+                ) : (
+                    <Zap className="h-4 w-4 text-muted-foreground animate-pulse" />
+                )}
                 <Button variant="ghost" size="icon" onClick={() => setIsDetailsSheetOpen(true)}>
                     <Notebook className="h-5 w-5" />
                     <span className="sr-only">View Details</span>
@@ -47,26 +65,34 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
             </div>
         </div>
       </CardHeader>
-      <CardFooter className="flex justify-end gap-2">
-        {lead.status === 'To Do' && (
-             <>
-                <Button variant="outline" size="sm" asChild onClick={handleContact}>
-                    <a href={`tel:${lead.phone}`} aria-label={`Call ${lead.name}`}>
-                        <Phone className="mr-2 h-4 w-4"/> Call
-                    </a>
-                </Button>
-                <Button variant="outline" size="sm" asChild onClick={handleContact}>
-                    <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${lead.name}`}>
-                        <MessageCircle className="mr-2 h-4 w-4"/> WhatsApp
-                    </a>
-                </Button>
-             </>
-        )}
-        {lead.status === 'Contacted' && (
-            <Button size="sm" onClick={handleConvert} className="bg-green-500 hover:bg-green-600 text-white">
-                <CheckCircle className="mr-2 h-4 w-4"/> Mark as Converted
+       <CardFooter className="flex justify-between items-center">
+        <div>
+             <Button variant="ghost" size="sm" onClick={() => setIsScriptDialogOpen(true)}>
+                <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                Script
             </Button>
-        )}
+        </div>
+        <div className="flex justify-end gap-2">
+            {lead.status === 'To Do' && (
+                <>
+                    <Button variant="outline" size="sm" asChild onClick={handleContact}>
+                        <a href={`tel:${lead.phone}`} aria-label={`Call ${lead.name}`}>
+                            <Phone className="mr-2 h-4 w-4"/> Call
+                        </a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild onClick={handleContact}>
+                        <a href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${lead.name}`}>
+                            <MessageCircle className="mr-2 h-4 w-4"/> WhatsApp
+                        </a>
+                    </Button>
+                </>
+            )}
+            {lead.status === 'Contacted' && (
+                <Button size="sm" onClick={handleConvert} className="bg-green-500 hover:bg-green-600 text-white">
+                    <CheckCircle className="mr-2 h-4 w-4"/> Mark as Converted
+                </Button>
+            )}
+        </div>
       </CardFooter>
     </Card>
     <ScriptGeneratorDialog 
@@ -77,7 +103,7 @@ export default function KanbanCard({ lead }: KanbanCardProps) {
     <LeadDetailsSheet
         isOpen={isDetailsSheetOpen}
         onOpenChange={setIsDetailsSheetOpen}
-        lead={lead}
+        leadId={lead.id}
     />
     </>
   );
