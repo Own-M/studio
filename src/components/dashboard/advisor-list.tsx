@@ -1,19 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import { useAppContext } from "@/context/app-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { User } from "lucide-react";
+import { User, UserPlus } from "lucide-react";
+import { Button } from "../ui/button";
+import { AddAdvisorDialog } from "./add-advisor-dialog";
 
 export default function AdvisorList() {
     const { advisors } = useAppContext();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     return (
+        <>
         <Card>
-            <CardHeader>
-                <CardTitle>Registered Advisors</CardTitle>
-                <CardDescription>A list of all advisors in your team.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Registered Advisors</CardTitle>
+                    <CardDescription>A list of all advisors in your team.</CardDescription>
+                </div>
+                <Button onClick={() => setIsDialogOpen(true)}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add Advisor
+                </Button>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -43,5 +54,7 @@ export default function AdvisorList() {
                 </Table>
             </CardContent>
         </Card>
+        <AddAdvisorDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
+        </>
     )
 }

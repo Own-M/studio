@@ -12,6 +12,7 @@ interface AppContextType {
   updateLeadStatus: (leadId: string, status: LeadStatus) => void;
   importLeads: () => void;
   addNoteToLead: (leadId: string, noteText: string) => void;
+  addAdvisor: (name: string, email: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -76,8 +77,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   };
 
+  const addAdvisor = (name: string, email: string) => {
+    const newAdvisor: Advisor = {
+        id: `adv-${Date.now()}`,
+        name,
+        email,
+    };
+    setAdvisors(prev => [...prev, newAdvisor]);
+    toast({
+        title: "Advisor Added",
+        description: `${name} has been added to the team.`
+    })
+  };
+
   return (
-    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead }}>
+    <AppContext.Provider value={{ advisors, leads, assignLead, updateLeadStatus, importLeads, addNoteToLead, addAdvisor }}>
       {children}
     </AppContext.Provider>
   );
