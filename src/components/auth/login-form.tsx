@@ -30,8 +30,8 @@ const FormSchema = z.object({
   role: z.enum(["team-leader", "advisor"], {
     required_error: "You need to select a role.",
   }),
-  email: z.string().email({ message: "Please enter a valid email." }).optional(),
-  password: z.string().optional(),
+  email: z.string().email({ message: "Please enter a valid email." }).optional().or(z.literal('')),
+  password: z.string().optional().or(z.literal('')),
 }).refine(data => {
     if (data.role === 'advisor') {
         return !!data.email && !!data.password;
@@ -50,14 +50,21 @@ export function LoginForm() {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const role = form.watch("role");
 
   useEffect(() => {
     setSelectedRole(role);
-    form.setValue("email", undefined);
-    form.setValue("password", undefined);
+    form.reset({
+      role: role,
+      email: '',
+      password: ''
+    });
   }, [role, form]);
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
